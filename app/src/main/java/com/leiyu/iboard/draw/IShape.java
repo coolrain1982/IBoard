@@ -8,7 +8,9 @@ import android.graphics.Canvas;
 
 public interface IShape {
 
-    public void touchMove(int startX, int startY, int x, int y);
+    public void touchMove(float x, float y);
+
+    public void touchDown(float x, float y);
 
     public void draw(Canvas canvas);
 }

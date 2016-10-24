@@ -1,9 +1,7 @@
 package com.leiyu.iboard.draw;
 
-import android.graphics.Canvas;
 import android.graphics.Paint;
-
-import com.leiyu.iboard.ScoreShowView;
+import com.leiyu.iboard.*;
 
 /**
  * Created by leiyu on 2016/10/21.
@@ -11,21 +9,19 @@ import com.leiyu.iboard.ScoreShowView;
 
 public abstract class AShape implements IShape {
 
-    protected ScoreShowView showView;
     protected Paint paint;
 
-    public AShape(ScoreShowView showView, int model) {
-        this.showView = showView;
+    public AShape(int model) {
         //定义画笔
         paint = new Paint();
-        //抗锯齿
         paint.setAntiAlias(true);
+        //抗锯齿
         //设置画笔颜色
-        paint.setColor(showView.getColor());
+        paint.setColor(ScoreShowView.getColor());
         //设置画笔为空心
         paint.setStyle(Paint.Style.STROKE);
         //设置画笔宽度
-        paint.setStrokeWidth(showView.getPenWidth());
+        paint.setStrokeWidth(ScoreShowView.getPenWidth());
         //颜色高精度
         paint.setDither(true);
         //结合处、画笔皆圆滑

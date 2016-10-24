@@ -1,7 +1,6 @@
 package com.leiyu.iboard.draw;
 
 import android.graphics.Canvas;
-import com.leiyu.iboard.ScoreShowView;
 
 
 /**
@@ -10,17 +9,34 @@ import com.leiyu.iboard.ScoreShowView;
 
 public class Curve extends AShape {
 
-    public Curve(ScoreShowView showView, int model) {
-        super(showView, model);
+    private float startX,startY = 0;
+    private SerialPath serialPath;
+
+    public Curve(int model) {
+        super(model);
+        serialPath = new SerialPath();
     }
 
     @Override
-    public void touchMove(int startX, int startY, int x, int y) {
+    public void touchDown(float x, float y) {
+            this.startX = x;
+            this.startY = y;
+            serialPath.moveTo(startX, startY);
+    }
 
+    @Override
+    public void touchMove(float x, float y) {
+
+        float endX = (x + startX) / 2;
+        float endY = (y + startY) / 2;
+
+        serialPath.quadTo(startX, startY, endX, endY);
+        this.startX = x;
+        this.startY = y;
     }
 
     @Override
     public void draw(Canvas canvas) {
-
+        canvas.drawPath(serialPath, paint);
     }
 }

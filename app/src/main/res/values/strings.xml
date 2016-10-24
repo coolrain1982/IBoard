@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">IBoard</string>
+    <string name="server_dns">192.168.0.110</string>
+    <integer name="iboard_port">52200</integer>
 </resources>

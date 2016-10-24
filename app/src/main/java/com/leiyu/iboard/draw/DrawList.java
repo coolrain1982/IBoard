@@ -8,21 +8,21 @@ import java.util.List;
  */
 
 public class DrawList {
-    private List<DrawPath> drawPathList = new ArrayList<>() ;
+    private List<IShape> shapeList = new ArrayList<>() ;
 
-    public void add(DrawPath path) {
+    public void add(IShape shape) {
         synchronized (this) {
-            drawPathList.add(path);
+            shapeList.add(shape);
         }
     }
 
-    public List<DrawPath> getAllDrawPath() {
+    public List<IShape> getAllshape() {
 
-        List<DrawPath> rtnList = new ArrayList<>();
+        List<IShape> rtnList = new ArrayList<>();
 
         synchronized (this) {
-            for(int i = 0; i < rtnList.size(); i++) {
-                rtnList.add(drawPathList.get(i));
+            for(int i = 0; i < shapeList.size(); i++) {
+                rtnList.add(shapeList.get(i));
             }
         }
 
