@@ -2,12 +2,14 @@ package com.leiyu.iboard.draw;
 
 import android.graphics.Canvas;
 
+import java.io.Serializable;
+
 
 /**
  * Created by leiyu on 2016/10/21.
  */
 
-public class Curve extends AShape {
+public class Curve extends AShape implements Serializable {
 
     private float startX,startY = 0;
     private SerialPath serialPath;

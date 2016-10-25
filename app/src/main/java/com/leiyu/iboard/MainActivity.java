@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
         showView.showScore("s1");
 
         ContextInfo.setContext(getApplicationContext());
+        ContextInfo.setActivity(MainActivity.this);
     }
 
 

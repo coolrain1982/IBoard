@@ -12,28 +12,5 @@ import java.util.ArrayList;
 public class SerialPath extends Path implements Serializable {
 
     private static final long serialVersionID = 2016102315581501L;
-    private ArrayList<float[]> pathPoint;
 
-    public SerialPath() {
-        super();
-        pathPoint = new ArrayList<>();
-    }
-
-    public SerialPath(SerialPath serialPath) {
-        super();
-        pathPoint = serialPath.pathPoint;
-    }
-
-    public void addPathPoint(float[] points) {
-        pathPoint.add(points);
-    }
-
-    public void loadPathPointsAdQuadTo() {
-        float[] startPointsArray = pathPoint.remove(0);
-        moveTo(startPointsArray[0], startPointsArray[1]);
-
-        for(float[] pointsArray:pathPoint) {
-            quadTo(pointsArray[0], pointsArray[1],pointsArray[2],pointsArray[3]);
-        }
-    }
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +15,11 @@ import com.leiyu.iboard.draw.Curve;
 import com.leiyu.iboard.draw.DrawList;
 import com.leiyu.iboard.draw.IShape;
 import com.leiyu.iboard.score.LoadScore;
+import com.leiyu.iboard.transmission.client.Command;
+import com.leiyu.iboard.transmission.client.ConnectToServer;
+import com.leiyu.iboard.transmission.client.ConnectToServerException;
+import com.leiyu.iboard.transmission.client.InterCmdQueue;
+import com.leiyu.iboard.transmission.client.SerializeTool;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +39,12 @@ public class ScoreShowView extends View {
     private Bitmap scoreBitmap = null;
     private boolean isInit = true;
     private AShape curShape = null;
-    private boolean isBoardStart = false;
+    private boolean isBoardStart = true;
+    //后台画布的相关对象
+    private Paint bitmapPaint;
+    private Bitmap backBitmap;
+    private Canvas backCanvas;
+
 
     public ScoreShowView(Context context, AttributeSet as) {
         super(context, as);
@@ -45,11 +56,26 @@ public class ScoreShowView extends View {
                     public void onGlobalLayout() {
                         width = self.getWidth();
                         height = self.getHeight();
+
+                        backBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                        backCanvas = new Canvas(backBitmap);
                     }
                 });
+        bitmapPaint = new Paint(Paint.DITHER_FLAG);
     }
 
     public void setBoardStart(boolean isStart) {
+        if (isStart) {//连接服务器
+            ConnectToServer connectToServer = new ConnectToServer();
+            try {
+                connectToServer.connet();
+            } catch (ConnectToServerException cte) {
+                connectToServer.showFailedDialog();
+                return;
+            }
+
+            //
+        }
         isBoardStart = isStart;
     }
 
@@ -67,6 +93,8 @@ public class ScoreShowView extends View {
             canvas.drawBitmap(scoreBitmap, 0, 0, null);
         }
 
+
+
         if (isBoardStart) {
             if (drawListMap.containsKey(scoreName)) {
                 //开始画记号
@@ -81,6 +109,12 @@ public class ScoreShowView extends View {
                     canvas.restore();
                 }
             }
+
+//            if (backBitmap != null) {
+//                canvas.save();
+//                canvas.drawBitmap(backBitmap, 0, 0, bitmapPaint);
+//                canvas.restore();
+//            }
 
             if (curShape != null) {
                 canvas.save();
@@ -151,26 +185,46 @@ public class ScoreShowView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (isBoardStart) {
+                if (isBoardStart && MainActivity.role == 1) {
                     curShape = new Curve(0);
                     curShape.touchDown(x, y);
+                    sendShapeToServer(Command.COMMAND_DRAWSHAPE_START,curShape);
                 }
                 break;
             case MotionEvent.ACTION_MOVE :
-                if (isBoardStart) {
+                if (isBoardStart && MainActivity.role == 1) {
                     curShape.touchMove(x, y);
+                    curShape.setStatusMove();
                     invalidate();
+                    sendShapeToServer(Command.COMMAND_DRAWSHAPE_MOVE, curShape);
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if (isBoardStart) {
+                if (isBoardStart && MainActivity.role == 1) {
+                    curShape.draw(backCanvas);
                     invalidate();
                     addDrawList(curShape);
+                    curShape.setStatusEnd();
+                    sendShapeToServer(Command.COMMAND_DRAWSHAPE_END, curShape);
                 }
+                break;
+            default:
                 break;
         }
 
         return true;
+    }
+
+    private void sendShapeToServer(int commandID, AShape shape) {
+        //先序列化对象
+        String objSerial = SerializeTool.object2String(shape);
+        if (objSerial == null) {
+            return;
+        }
+
+        //格式化
+        InterCmdQueue.addCmdOut(String.format("%04d%08d%s", commandID,
+                objSerial.length(), objSerial));
     }
 
 }

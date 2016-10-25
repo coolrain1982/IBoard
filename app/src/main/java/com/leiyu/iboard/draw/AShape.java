@@ -3,15 +3,26 @@ package com.leiyu.iboard.draw;
 import android.graphics.Paint;
 import com.leiyu.iboard.*;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * Created by leiyu on 2016/10/21.
  */
 
-public abstract class AShape implements IShape {
+public abstract class AShape implements IShape, Serializable {
+
+    protected static final long serialVersionID = 1L;
+
+    public static final int STATUS_MOVE = 1;
+    public static final int STATUS_END = 2;
 
     protected Paint paint;
+    protected int status = 0; //0-初始；1-移动；2-结束
+    protected long time = 0;
 
     public AShape(int model) {
+        time = System.currentTimeMillis();
         //定义画笔
         paint = new Paint();
         paint.setAntiAlias(true);
@@ -27,5 +38,17 @@ public abstract class AShape implements IShape {
         //结合处、画笔皆圆滑
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
+    }
+
+    public void setStatusMove() {
+        this.status = STATUS_MOVE;
+    }
+
+    public void setStatusEnd() {
+        this.status = STATUS_END;
+    }
+
+    public long getTime() {
+        return time;
     }
 }

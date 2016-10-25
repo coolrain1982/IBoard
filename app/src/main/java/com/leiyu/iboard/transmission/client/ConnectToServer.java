@@ -1,7 +1,11 @@
 package com.leiyu.iboard.transmission.client;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
 import com.leiyu.iboard.ContextInfo;
+import com.leiyu.iboard.MainActivity;
 import com.leiyu.iboard.R;
 
 import java.net.Socket;
@@ -10,7 +14,7 @@ import java.net.Socket;
  * Created by leiyu on 2016/10/25.
  */
 
-public class InterWithServer {
+public class ConnectToServer {
 
     private String serverDNS="";
     private int port=0;
@@ -27,7 +31,19 @@ public class InterWithServer {
         }
     }
 
-    public void getInfoFromServer() {
+    public Socket getSocket() {
+        return socket;
+    }
 
+    public void showFailedDialog() {
+        final AlertDialog.Builder dia = new AlertDialog.Builder(ContextInfo.getActivity());
+        dia.setTitle("Connect to board server failed!");
+        dia.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        dia.show();
     }
 }

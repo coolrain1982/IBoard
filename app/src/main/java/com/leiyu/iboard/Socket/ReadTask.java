@@ -54,7 +54,7 @@ public class ReadTask extends Thread {
                     sb.append(charArr, 0, charLen);
                 }
 
-                //前4个字符为命令字
+
             } catch (IOException e) {
                 listening = false;
                 if (socketStatusListener != null) {
