@@ -33,6 +33,7 @@ public class ScoreShowView extends View {
     private Bitmap scoreBitmap = null;
     private boolean isInit = true;
     private AShape curShape = null;
+    private boolean isBoardStart = false;
 
     public ScoreShowView(Context context, AttributeSet as) {
         super(context, as);
@@ -48,6 +49,10 @@ public class ScoreShowView extends View {
                 });
     }
 
+    public void setBoardStart(boolean isStart) {
+        isBoardStart = isStart;
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -60,7 +65,9 @@ public class ScoreShowView extends View {
 
         if (scoreBitmap != null) {
             canvas.drawBitmap(scoreBitmap, 0, 0, null);
+        }
 
+        if (isBoardStart) {
             if (drawListMap.containsKey(scoreName)) {
                 //开始画记号
                 List<IShape> drawPathList = getDrawList();
@@ -74,12 +81,12 @@ public class ScoreShowView extends View {
                     canvas.restore();
                 }
             }
-        }
 
-        if (curShape != null) {
-            canvas.save();
-            curShape.draw(canvas);
-            canvas.restore();
+            if (curShape != null) {
+                canvas.save();
+                curShape.draw(canvas);
+                canvas.restore();
+            }
         }
 
     }
@@ -144,16 +151,22 @@ public class ScoreShowView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                curShape = new Curve(0);
-                curShape.touchDown(x, y);
+                if (isBoardStart) {
+                    curShape = new Curve(0);
+                    curShape.touchDown(x, y);
+                }
                 break;
             case MotionEvent.ACTION_MOVE :
-                curShape.touchMove(x, y);
-                invalidate();
+                if (isBoardStart) {
+                    curShape.touchMove(x, y);
+                    invalidate();
+                }
                 break;
             case MotionEvent.ACTION_UP:
-                invalidate();
-                addDrawList(curShape);
+                if (isBoardStart) {
+                    invalidate();
+                    addDrawList(curShape);
+                }
                 break;
         }
 

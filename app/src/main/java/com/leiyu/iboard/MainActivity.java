@@ -15,9 +15,13 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        //这里从strings.xml中获取角色，供调试用。正式运行中应从登陆信息中获取
+        role = getResources().getInteger(R.integer.role);
         ScoreShowView showView = (ScoreShowView) findViewById(R.id.scoreShowView);
 
         showView.showScore("s1");
+
+        ContextInfo.setContext(getApplicationContext());
     }
 
 
