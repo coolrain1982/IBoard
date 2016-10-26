@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
+import com.leiyu.iboard.Socket.SocketHandler;
 import com.leiyu.iboard.draw.AShape;
 import com.leiyu.iboard.draw.Curve;
 import com.leiyu.iboard.draw.DrawList;
@@ -21,6 +22,8 @@ import com.leiyu.iboard.transmission.client.ConnectToServerException;
 import com.leiyu.iboard.transmission.client.InterCmdQueue;
 import com.leiyu.iboard.transmission.client.SerializeTool;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +42,19 @@ public class ScoreShowView extends View {
     private Bitmap scoreBitmap = null;
     private boolean isInit = true;
     private AShape curShape = null;
+    //iboard是否启动
     private boolean isBoardStart = true;
+    //是否在做标记模式
+    private boolean isComment = false;
     //后台画布的相关对象
     private Paint bitmapPaint;
     private Bitmap backBitmap;
     private Canvas backCanvas;
+    //画图信息传递相关对象
+    private long iboardID = 0;
+    private Socket socket = null;
+    private InterCmdQueue interCmdQueue;
+    private SocketHandler socketHandler;
 
 
     public ScoreShowView(Context context, AttributeSet as) {
@@ -57,26 +68,61 @@ public class ScoreShowView extends View {
                         width = self.getWidth();
                         height = self.getHeight();
 
-                        backBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                        backCanvas = new Canvas(backBitmap);
+//                        backBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+//                        backCanvas = new Canvas(backBitmap);
                     }
                 });
         bitmapPaint = new Paint(Paint.DITHER_FLAG);
     }
 
-    public void setBoardStart(boolean isStart) {
-        if (isStart) {//连接服务器
-            ConnectToServer connectToServer = new ConnectToServer();
-            try {
-                connectToServer.connet();
-            } catch (ConnectToServerException cte) {
-                connectToServer.showFailedDialog();
-                return;
-            }
-
-            //
+    public void iboardStart() {
+        //不能重复启动iboard
+        if (isBoardStart) {
+            return;
         }
-        isBoardStart = isStart;
+
+        //连接服务器
+        ConnectToServer connectToServer = new ConnectToServer();
+        try {
+            socket = connectToServer.connect();
+        } catch (ConnectToServerException cte) {
+            connectToServer.showFailedDialog();
+            return;
+        }
+
+        //
+        iboardID = System.currentTimeMillis();
+
+        //
+        interCmdQueue = new InterCmdQueue();
+        try {
+            socketHandler = new SocketHandler(socket, interCmdQueue);
+        } catch (Exception e) {
+            iboardEnd();
+            return;
+
+        }
+
+        isBoardStart = true;
+    }
+
+    /**
+     * iboard停止
+     */
+    public void iboardEnd() {
+
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        interCmdQueue.clear();
+        interCmdQueue = null;
+
+        isBoardStart = false;
     }
 
 
@@ -187,6 +233,7 @@ public class ScoreShowView extends View {
             case MotionEvent.ACTION_DOWN:
                 if (isBoardStart && MainActivity.role == 1) {
                     curShape = new Curve(0);
+                    curShape.setIboardID(iboardID);
                     curShape.touchDown(x, y);
                     sendShapeToServer(Command.COMMAND_DRAWSHAPE_START,curShape);
                 }
@@ -195,13 +242,13 @@ public class ScoreShowView extends View {
                 if (isBoardStart && MainActivity.role == 1) {
                     curShape.touchMove(x, y);
                     curShape.setStatusMove();
-                    invalidate();
                     sendShapeToServer(Command.COMMAND_DRAWSHAPE_MOVE, curShape);
+                    invalidate();
                 }
                 break;
             case MotionEvent.ACTION_UP:
                 if (isBoardStart && MainActivity.role == 1) {
-                    curShape.draw(backCanvas);
+                    //curShape.draw(backCanvas);
                     invalidate();
                     addDrawList(curShape);
                     curShape.setStatusEnd();
@@ -223,8 +270,7 @@ public class ScoreShowView extends View {
         }
 
         //格式化
-        InterCmdQueue.addCmdOut(String.format("%04d%08d%s", commandID,
+        interCmdQueue.addCmdOut(String.format("%04d%08d%s", commandID,
                 objSerial.length(), objSerial));
     }
-
 }

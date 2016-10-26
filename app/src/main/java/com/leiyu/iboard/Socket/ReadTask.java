@@ -1,11 +1,14 @@
 package com.leiyu.iboard.Socket;
 
+import com.leiyu.iboard.transmission.client.Command;
+import com.leiyu.iboard.transmission.client.CommandProcess;
+import com.leiyu.iboard.transmission.client.InterCmdQueue;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.CharBuffer;
 
 /**
  * Created by leiyu on 2016/10/25.
@@ -18,29 +21,30 @@ public class ReadTask extends Thread {
     private BufferedReader br;
     private boolean listening;
     private char[] charArr;
+    private InterCmdQueue interCmdQueue;
     private StringBuffer sb = new StringBuffer();
 
-    public ReadTask(Socket socket) throws IOException {
+    protected ReadTask(Socket socket, InterCmdQueue icq) throws IOException {
         br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.socket = socket;
+        interCmdQueue = icq;
         charArr = new char[1024];
     }
 
-    public void finish() throws IOException {
+    protected void finish() throws IOException {
         listening = false;
         interrupt();
-        if (br != null && socket != null) {
-            try {
-                socket.shutdownInput();
-            } catch (Exception e) {
-            }
 
-            try {
-                br.close();
-            } catch (Exception e) {
-            } finally {
-                br = null;
-            }
+        try {
+            socket.shutdownInput();
+        } catch (Exception e) {
+        }
+
+        try {
+            br.close();
+        } catch (Exception e) {
+        } finally {
+            br = null;
         }
 
         charArr = null;
@@ -54,6 +58,15 @@ public class ReadTask extends Thread {
                     sb.append(charArr, 0, charLen);
                 }
 
+                CommandProcess cp = new CommandProcess(sb);
+                Command cmd = cp.getCommand();
+                if (cmd != null) {
+                    interCmdQueue.addCmdIn(cmd);
+                }
+
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {e.printStackTrace();}
 
             } catch (IOException e) {
                 listening = false;
@@ -81,7 +94,7 @@ public class ReadTask extends Thread {
         return SocketStatusListener.STATUS_UNKOWN;
     }
 
-    public void startListener(SocketStatusListener ssl) {
+    protected void startListener(SocketStatusListener ssl) {
         listening = true;
         this.socketStatusListener = ssl;
         start();

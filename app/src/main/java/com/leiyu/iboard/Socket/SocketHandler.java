@@ -1,5 +1,7 @@
 package com.leiyu.iboard.Socket;
 
+import com.leiyu.iboard.transmission.client.InterCmdQueue;
+
 import java.io.IOException;
 import java.net.Socket;
 
@@ -12,26 +14,25 @@ public class SocketHandler implements SocketStatusListener {
     private Socket socket = null;
     private ReadTask reader;
     private WriteTask writer;
+    private InterCmdQueue interCmdQueue;
 
-    public SocketHandler(Socket socket) throws IOException {
+    public SocketHandler(Socket socket, InterCmdQueue icq) throws IOException {
         this.socket = socket;
         this.socket.setTcpNoDelay(true);
-        reader = new ReadTask(socket);
-        writer = new WriteTask(socket);
+        reader = new ReadTask(socket, icq);
+        writer = new WriteTask(socket, icq);
+        interCmdQueue = icq;
         onSocketStatusChanged(socket, STATUS_OPEN, null);
     }
 
-    public void sendMessage(String msg) {
-        //writer.send(msg);
-    }
-
-    public void listen(boolean isListen) {
+    public void listen() {
         reader.startListener(this);
+        writer.startListener();
     }
 
     public void shutDown() {
         try {
-            //writer.finish();
+            writer.finish();
         } catch (Exception e) {
 
         }

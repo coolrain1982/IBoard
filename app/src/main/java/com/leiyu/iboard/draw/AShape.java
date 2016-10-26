@@ -20,6 +20,7 @@ public abstract class AShape implements IShape, Serializable {
     protected Paint paint;
     protected int status = 0; //0-初始；1-移动；2-结束
     protected long time = 0;
+    protected long iboardID = 0;
 
     public AShape(int model) {
         time = System.currentTimeMillis();
@@ -51,4 +52,6 @@ public abstract class AShape implements IShape, Serializable {
     public long getTime() {
         return time;
     }
+
+    public void setIboardID(long iboardID) { this.iboardID = iboardID;}
 }

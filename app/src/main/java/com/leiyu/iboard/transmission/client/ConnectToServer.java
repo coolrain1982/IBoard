@@ -20,12 +20,13 @@ public class ConnectToServer {
     private int port=0;
     private Socket socket = null;
 
-    public void connet() throws ConnectToServerException {
+    public Socket connect() throws ConnectToServerException {
         try {
             serverDNS = ContextInfo.getContext().getResources().getString(R.string.server_dns);
             port = ContextInfo.getContext().getResources().getInteger(R.integer.iboard_port);
-
             socket = new Socket(serverDNS, port);
+
+            return socket;
         } catch (Exception e) {
             throw new ConnectToServerException(e.getMessage(), serverDNS, Integer.toString(port));
         }

@@ -7,20 +7,20 @@ import java.util.ArrayList;
  */
 
 public class InterCmdQueue {
-    private static ArrayList<String> cmdIn = new ArrayList<>();
-    private static ArrayList<String> cmdOut = new ArrayList<>();
+    private ArrayList<Object> cmdIn = new ArrayList<>();
+    private ArrayList<String> cmdOut = new ArrayList<>();
 
-    private static final Integer cmdInSyn = 0;
-    private static final Integer cmdOutSyn = 1;
+    private final Integer cmdInSyn = 0;
+    private final Integer cmdOutSyn = 1;
 
-    public static void addCmdIn(String cmd) {
+    public void addCmdIn(Object cmd) {
         synchronized (cmdInSyn) {
             cmdIn.add(cmd);
         }
     }
 
-    public static String getCmdIn() {
-        String rtnStr = null;
+    public Object getCmdIn() {
+        Object rtnStr = null;
         synchronized (cmdInSyn) {
             if (cmdIn.size() > 0) {
                 rtnStr = cmdIn.remove(0);
@@ -30,13 +30,13 @@ public class InterCmdQueue {
         return rtnStr;
     }
 
-    public static void addCmdOut(String cmd) {
+    public void addCmdOut(String cmd) {
         synchronized (cmdOutSyn) {
             cmdOut.add(cmd);
         }
     }
 
-    public static String getCmdOut() {
+    public String getCmdOut() {
         String rtnStr = null;
         synchronized (cmdOutSyn) {
             if (cmdOut.size() > 0) {
@@ -45,5 +45,14 @@ public class InterCmdQueue {
         }
 
         return rtnStr;
+    }
+
+    public void clear() {
+        synchronized (cmdInSyn) {
+            cmdIn.clear();
+        }
+        synchronized (cmdOutSyn) {
+            cmdOut.clear();
+        }
     }
 }

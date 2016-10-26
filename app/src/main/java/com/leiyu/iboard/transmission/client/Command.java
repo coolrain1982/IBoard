@@ -12,6 +12,7 @@ public class Command {
     public static final int COMMAND_DRAWSHAPE_START = 4; //画图开始
     public static final int COMMAND_DRAWSHAPE_MOVE = 5; //移动画笔
     public static final int COMMAND_DRAWSHAPE_END = 6; //画图结束
+    public static final int COMMAND_DRAWSHAPE_ALL = 7; //把画图轨迹全部重发一次
     public static final int COMMAND_HEARTBEAT = 999; //心跳
 
     private int commandId;
