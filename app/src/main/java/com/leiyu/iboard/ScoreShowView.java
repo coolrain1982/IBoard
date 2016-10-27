@@ -10,7 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
-import com.leiyu.iboard.Socket.SocketHandler;
+import com.leiyu.iboard.socket.SocketHandler;
 import com.leiyu.iboard.draw.AShape;
 import com.leiyu.iboard.draw.Curve;
 import com.leiyu.iboard.draw.DrawList;

@@ -1,4 +1,4 @@
-package com.leiyu.iboard.Socket;
+package com.leiyu.iboard.socket;
 
 import java.io.IOException;
 import java.net.Socket;

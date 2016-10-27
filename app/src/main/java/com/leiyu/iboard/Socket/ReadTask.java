@@ -1,4 +1,4 @@
-package com.leiyu.iboard.Socket;
+package com.leiyu.iboard.socket;
 
 import com.leiyu.iboard.transmission.Command;
 import com.leiyu.iboard.transmission.CommandProcess;
