@@ -16,13 +16,12 @@ import com.leiyu.iboard.draw.Curve;
 import com.leiyu.iboard.draw.DrawList;
 import com.leiyu.iboard.draw.IShape;
 import com.leiyu.iboard.score.LoadScore;
-import com.leiyu.iboard.transmission.client.Command;
-import com.leiyu.iboard.transmission.client.ConnectToServer;
-import com.leiyu.iboard.transmission.client.ConnectToServerException;
-import com.leiyu.iboard.transmission.client.InterCmdQueue;
-import com.leiyu.iboard.transmission.client.SerializeTool;
+import com.leiyu.iboard.transmission.Command;
+import com.leiyu.iboard.transmission.ConnectToServer;
+import com.leiyu.iboard.transmission.ConnectToServerException;
+import com.leiyu.iboard.transmission.InterCmdQueue;
+import com.leiyu.iboard.transmission.SerializeTool;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +54,7 @@ public class ScoreShowView extends View {
     private Socket socket = null;
     private InterCmdQueue interCmdQueue;
     private SocketHandler socketHandler;
+    private UpdateUIFromServer updateUIFromServer;
 
 
     public ScoreShowView(Context context, AttributeSet as) {
@@ -72,7 +72,7 @@ public class ScoreShowView extends View {
 //                        backCanvas = new Canvas(backBitmap);
                     }
                 });
-        bitmapPaint = new Paint(Paint.DITHER_FLAG);
+//        bitmapPaint = new Paint(Paint.DITHER_FLAG);
     }
 
     public void iboardStart() {
@@ -88,6 +88,8 @@ public class ScoreShowView extends View {
         } catch (ConnectToServerException cte) {
             connectToServer.showFailedDialog();
             return;
+        } catch (Exception e1) {
+            return;
         }
 
         //
@@ -97,11 +99,14 @@ public class ScoreShowView extends View {
         interCmdQueue = new InterCmdQueue();
         try {
             socketHandler = new SocketHandler(socket, interCmdQueue);
+            socketHandler.listen();
         } catch (Exception e) {
             iboardEnd();
             return;
-
         }
+
+        updateUIFromServer = new UpdateUIFromServer(interCmdQueue);
+        updateUIFromServer.start();
 
         isBoardStart = true;
     }
@@ -111,6 +116,9 @@ public class ScoreShowView extends View {
      */
     public void iboardEnd() {
 
+        socketHandler.shutDown();
+        socketHandler = null;
+
         if (socket != null) {
             try {
                 socket.close();
@@ -119,8 +127,14 @@ public class ScoreShowView extends View {
             }
         }
 
+        if (updateUIFromServer != null) {
+            updateUIFromServer.finish();
+        }
+
         interCmdQueue.clear();
         interCmdQueue = null;
+
+        updateUIFromServer = null;
 
         isBoardStart = false;
     }
@@ -138,8 +152,6 @@ public class ScoreShowView extends View {
         if (scoreBitmap != null) {
             canvas.drawBitmap(scoreBitmap, 0, 0, null);
         }
-
-
 
         if (isBoardStart) {
             if (drawListMap.containsKey(scoreName)) {
@@ -220,7 +232,7 @@ public class ScoreShowView extends View {
     }
 
     public  static float getPenWidth() {
-        return 3.0f;
+        return 4.0f;
     }
 
     @Override
@@ -272,5 +284,75 @@ public class ScoreShowView extends View {
         //格式化
         interCmdQueue.addCmdOut(String.format("%04d%08d%s", commandID,
                 objSerial.length(), objSerial));
+    }
+
+    class UpdateUIFromServer extends Thread {
+        private InterCmdQueue interCmdQueue_inner;
+        private boolean isFinish = false;
+        UpdateUIFromServer(InterCmdQueue icq) {
+            interCmdQueue_inner = icq;
+        }
+
+        public void finish() {
+            isFinish = true;
+        }
+
+        @Override
+        public void run() {
+            while (!isFinish) {
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                //从队列中取出消息
+                if (interCmdQueue_inner == null) {
+                    continue;
+                }
+
+                Object commandObject = interCmdQueue_inner.getCmdIn();
+                if (commandObject == null) {
+                    continue;
+                }
+                if (Command.class.isInstance(commandObject)) {
+                    continue;
+                }
+
+                Command command = (Command) commandObject;
+
+                AShape ashape = SerializeTool.getObjectFromString(command.getCommand(), AShape.class);
+
+                if(ashape == null) {
+                    continue;
+                }
+
+                switch (command.getCommandId()) {
+                    case Command.COMMAND_DRAWSHAPE_START:
+                        break;
+                    case Command.COMMAND_DRAWSHAPE_MOVE:
+                        curShape = ashape;
+                        ContextInfo.getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                invalidate();
+                            }
+                        });
+                        break;
+                    case Command.COMMAND_DRAWSHAPE_END:
+                        ContextInfo.getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                invalidate();
+                            }
+                        });
+
+                        addDrawList(curShape);
+
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 }

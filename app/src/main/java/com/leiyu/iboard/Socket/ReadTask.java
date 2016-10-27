@@ -1,8 +1,8 @@
 package com.leiyu.iboard.Socket;
 
-import com.leiyu.iboard.transmission.client.Command;
-import com.leiyu.iboard.transmission.client.CommandProcess;
-import com.leiyu.iboard.transmission.client.InterCmdQueue;
+import com.leiyu.iboard.transmission.Command;
+import com.leiyu.iboard.transmission.CommandProcess;
+import com.leiyu.iboard.transmission.InterCmdQueue;
 
 import java.io.BufferedReader;
 import java.io.IOException;

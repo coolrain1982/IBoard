@@ -1,7 +1,7 @@
 package com.leiyu.iboard;
 
-import com.leiyu.iboard.transmission.client.Command;
-import com.leiyu.iboard.transmission.client.CommandProcess;
+import com.leiyu.iboard.transmission.Command;
+import com.leiyu.iboard.transmission.CommandProcess;
 
 import org.junit.Test;
 
