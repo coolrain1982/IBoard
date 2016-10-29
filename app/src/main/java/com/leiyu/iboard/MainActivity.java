@@ -17,14 +17,32 @@ public class MainActivity extends AppCompatActivity {
 
         //这里从strings.xml中获取角色，供调试用。正式运行中应从登陆信息中获取
         role = getResources().getInteger(R.integer.role);
-        ScoreShowView showView = (ScoreShowView) findViewById(R.id.scoreShowView);
+        final ScoreShowView showView = (ScoreShowView) findViewById(R.id.scoreShowView);
 
         showView.showScore("s1");
 
         ContextInfo.setContext(getApplicationContext());
         ContextInfo.setActivity(MainActivity.this);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e) {}
+
+                showView.iboardStart();
+            }
+        }).start();
     }
 
+    @Override
+    protected void onDestroy() {
+        ScoreShowView showView = (ScoreShowView) findViewById(R.id.scoreShowView);
+        showView.iboardEnd();
+
+        super.onDestroy();
+    }
 
     /**
      * A native method that is implemented by the 'native-lib' native library,

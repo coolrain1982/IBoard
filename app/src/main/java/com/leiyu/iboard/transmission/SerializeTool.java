@@ -1,19 +1,21 @@
 package com.leiyu.iboard.transmission;
 
-
-import android.util.Log;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 /**
  * Created by leiyu on 2016/10/25.
  */
 
 public class SerializeTool {
+
+    private static BASE64Encoder encode = new BASE64Encoder();
+    private static BASE64Decoder decode = new BASE64Decoder();
 
     public static String object2String(Object o) {
         String objBody = null;
@@ -25,9 +27,9 @@ public class SerializeTool {
             oos = new ObjectOutputStream(baops);
             oos.writeObject(o);
             byte[] bytes = baops.toByteArray();
-            objBody = new String(bytes);
+            objBody = encode.encode(bytes);
         } catch (Exception e) {
-
+            e.printStackTrace();
         } finally {
             try {
                 oos.close();
@@ -42,14 +44,17 @@ public class SerializeTool {
     }
 
     public static <T extends Serializable> T getObjectFromString(String objBody, Class<T> clazz) {
-        byte[] bytes = objBody.getBytes();
         ObjectInputStream ois = null;
         T obj = null;
 
         try {
-            ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+            byte[] bytes = decode.decodeBuffer(objBody);
+            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
             obj = (T) ois.readObject();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         finally {
             try {
                 ois.close();

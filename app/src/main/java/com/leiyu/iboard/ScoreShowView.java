@@ -26,6 +26,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Exchanger;
 
 /**
  * Created by leiyu on 2016/10/20.
@@ -42,7 +43,7 @@ public class ScoreShowView extends View {
     private boolean isInit = true;
     private AShape curShape = null;
     //iboard是否启动
-    private boolean isBoardStart = true;
+    private boolean isBoardStart = false;
     //是否在做标记模式
     private boolean isComment = false;
     //后台画布的相关对象
@@ -51,6 +52,7 @@ public class ScoreShowView extends View {
     private Canvas backCanvas;
     //画图信息传递相关对象
     private long iboardID = 0;
+    private String userName = "invalid";
     private Socket socket = null;
     private InterCmdQueue interCmdQueue;
     private SocketHandler socketHandler;
@@ -107,6 +109,13 @@ public class ScoreShowView extends View {
 
         updateUIFromServer = new UpdateUIFromServer(interCmdQueue);
         updateUIFromServer.start();
+
+        try {
+            userName = getResources().getString(R.string.user_name);
+        } catch (Exception e) {}
+
+        interCmdQueue.addCmdOut(String.format("%04d%08d%s", Command.COMMAND_USERID,
+                userName.length(), userName));
 
         isBoardStart = true;
     }
@@ -314,7 +323,7 @@ public class ScoreShowView extends View {
                 if (commandObject == null) {
                     continue;
                 }
-                if (Command.class.isInstance(commandObject)) {
+                if (!Command.class.isInstance(commandObject)) {
                     continue;
                 }
 

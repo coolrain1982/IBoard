@@ -5,6 +5,7 @@ import com.leiyu.iboard.transmission.InterCmdQueue;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
@@ -15,13 +16,13 @@ public class WriteTask extends Thread {
 
     private Socket socket;
     private InterCmdQueue interCmdQueue;
-    private BufferedWriter bw;
+    private PrintWriter bw;
     private boolean isFinish = false;
 
     protected WriteTask(Socket socket, InterCmdQueue icq) throws IOException{
         this.socket = socket;
         this.interCmdQueue = icq;
-        bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        bw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
     }
 
     protected void finish() {
@@ -32,13 +33,13 @@ public class WriteTask extends Thread {
         start();
     }
 
-    public synchronized void run() {
+    public void run() {
         while(!isFinish) {
             //从消息队列中取出一条消息，发送出去
             String msg = interCmdQueue.getCmdOut();
             if (msg != null) {
                 try {
-                    bw.write(msg);
+                    bw.print(msg);
                     bw.flush();
                 } catch (Exception e) {
                     e.printStackTrace();
