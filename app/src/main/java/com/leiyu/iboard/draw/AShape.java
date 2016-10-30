@@ -22,10 +22,8 @@ public abstract class AShape implements IShape, Serializable {
     protected long time = 0;
     protected long iboardID = 0;
 
-    public AShape(int model) {
-        time = System.currentTimeMillis();
+    public void initPaint() {
         //定义画笔
-        paint = new MyPaint();
         paint.setAntiAlias(true);
         //抗锯齿
         //设置画笔颜色
@@ -39,6 +37,13 @@ public abstract class AShape implements IShape, Serializable {
         //结合处、画笔皆圆滑
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
+    }
+
+    public AShape(int model) {
+        time = System.currentTimeMillis();
+        //定义画笔
+        paint = new MyPaint();
+        initPaint();
     }
 
     public void setStatusMove() {

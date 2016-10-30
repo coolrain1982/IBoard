@@ -58,16 +58,18 @@ public class ReadTask extends Thread {
                     sb.append(charArr, 0, charLen);
                 }
 
-                if (sb.length() > 0) {
+                while (sb.length() > 0) {
                     CommandProcess cp = new CommandProcess(sb);
                     Command cmd = cp.getCommand();
                     if (cmd != null) {
                         interCmdQueue.addCmdIn(cmd);
+                    } else {
+                        break;
                     }
                 }
 
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1);
                 } catch (Exception e) {e.printStackTrace();}
 
             } catch (IOException e) {

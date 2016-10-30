@@ -36,7 +36,7 @@ public class InterCmdQueue {
         }
     }
 
-    public String getCmdOut() {
+        public String getCmdOut() {
         String rtnStr = null;
         synchronized (cmdOutSyn) {
             if (cmdOut.size() > 0) {

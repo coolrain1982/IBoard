@@ -11,6 +11,8 @@ import com.leiyu.iboard.transmission.SerializeTool;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Iterator;
+
 import static org.junit.Assert.*;
 
 /**
@@ -28,9 +30,20 @@ public class ExampleInstrumentedTest {
         Curve curve = new Curve(0);
         curve.setIboardID(12345);
         //先序列化对象
-        String objSerial = SerializeTool.object2String(curve);
+//        String objSerial = SerializeTool.object2String(curve);
+//
+//        AShape aShape = SerializeTool.getObjectFromString(objSerial, AShape.class);
 
-        AShape aShape = SerializeTool.getObjectFromString(objSerial, AShape.class);
+        StringBuffer sb = new StringBuffer();
+        sb.append(curve.getTime());
+        Iterator<float[]> iter = curve.getPoints().iterator();
+        while(iter.hasNext())  {
+            float[] points = iter.next();
+            sb.append("||");
+            sb.append(points[0]);
+            sb.append(",");
+            sb.append(points[1]);
+        }
 
         assertEquals("com.leiyu.iboard", appContext.getPackageName());
     }

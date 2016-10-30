@@ -20,13 +20,13 @@ import com.leiyu.iboard.transmission.Command;
 import com.leiyu.iboard.transmission.ConnectToServer;
 import com.leiyu.iboard.transmission.ConnectToServerException;
 import com.leiyu.iboard.transmission.InterCmdQueue;
-import com.leiyu.iboard.transmission.SerializeTool;
 
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Exchanger;
 
 /**
  * Created by leiyu on 2016/10/20.
@@ -57,6 +57,7 @@ public class ScoreShowView extends View {
     private InterCmdQueue interCmdQueue;
     private SocketHandler socketHandler;
     private UpdateUIFromServer updateUIFromServer;
+    private long receAshapeTime = 0;
 
 
     public ScoreShowView(Context context, AttributeSet as) {
@@ -144,6 +145,7 @@ public class ScoreShowView extends View {
         interCmdQueue = null;
 
         updateUIFromServer = null;
+        receAshapeTime = 0;
 
         isBoardStart = false;
     }
@@ -285,14 +287,42 @@ public class ScoreShowView extends View {
 
     private void sendShapeToServer(int commandID, AShape shape) {
         //先序列化对象
-        String objSerial = SerializeTool.object2String(shape);
-        if (objSerial == null) {
-            return;
+//        String objSerial = SerializeTool.object2String(shape);
+//        if (objSerial == null) {
+//            return;
+//        }
+
+        StringBuffer sb = new StringBuffer();
+        sb.append(shape.getTime());
+
+        //先加第一个点
+        if(shape.getPoints().size() > 0) {
+            sb.append("||");
+            sb.append(shape.getPoints().get(0)[0]);
+            sb.append(",");
+            sb.append(shape.getPoints().get(0)[1]);
         }
+
+        //加最后一个点
+        if(shape.getPoints().size() > 1) {
+            sb.append("||");
+            sb.append(shape.getPoints().get(shape.getPoints().size() - 1)[0]);
+            sb.append(",");
+            sb.append(shape.getPoints().get(shape.getPoints().size() - 1)[1]);
+        }
+
+//        Iterator<float[]> iter = shape.getPoints().iterator();
+//        while(iter.hasNext())  {
+//            float[] points = iter.next();
+//            sb.append("||");
+//            sb.append(points[0]);
+//            sb.append(",");
+//            sb.append(points[1]);
+//        }
 
         //格式化
         interCmdQueue.addCmdOut(String.format("%04d%08d%s", commandID,
-                objSerial.length(), objSerial));
+                sb.length(), sb));
     }
 
     class UpdateUIFromServer extends Thread {
@@ -308,9 +338,10 @@ public class ScoreShowView extends View {
 
         @Override
         public void run() {
+
             while (!isFinish) {
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -329,17 +360,78 @@ public class ScoreShowView extends View {
 
                 Command command = (Command) commandObject;
 
-                AShape ashape = SerializeTool.getObjectFromString(command.getCommand(), AShape.class);
+                String[] cmdArray = command.getCommand().split("\\|\\|");
+                //第一个为时间戳
+                if (cmdArray.length < 2) {
+                    continue;
+                }
 
-                if(ashape == null) {
+                long curAshapeTime = 0;
+                try {
+                    curAshapeTime = Long.parseLong(cmdArray[0]);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
+
+                List<float[]> points = new ArrayList<>();
+                for(int i = 1; i < cmdArray.length; i ++) {
+
+                    String[] pointArr = cmdArray[i].split(",") ;
+                    if (pointArr.length == 2) {
+                        try {
+                            points.add(new float[]{Float.parseFloat(pointArr[0]),
+                                    Float.parseFloat(pointArr[1])});
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            continue;
+                        }
+                    }
+
+                }
+
+                if (points.size() == 0) {
                     continue;
                 }
 
                 switch (command.getCommandId()) {
                     case Command.COMMAND_DRAWSHAPE_START:
+                        if (curAshapeTime != receAshapeTime) {
+                            curShape = new Curve(0);
+                            receAshapeTime = curAshapeTime;
+                            Iterator<float[]> iterator1 = points.iterator();
+                            if (iterator1.hasNext()) {
+                                float[] point = iterator1.next();
+                                curShape.touchDown(point[0], point[1]);
+                            }
+                        }
                         break;
                     case Command.COMMAND_DRAWSHAPE_MOVE:
-                        curShape = ashape;
+
+                        if (curAshapeTime != receAshapeTime) {
+                            curShape = new Curve(0);
+                            receAshapeTime = curAshapeTime;
+                            Iterator<float[]> iterator1 = points.iterator();
+                            if (iterator1.hasNext()) {
+                                float[] point = iterator1.next();
+                                curShape.touchDown(point[0], point[1]);
+                            }
+
+                            while (iterator1.hasNext()) {
+                                try {
+                                    float[] point = iterator1.next();
+                                    curShape.touchMove(point[0], point[1]);
+                                } catch ( Exception e1) {
+                                    e1.printStackTrace();
+                                }
+                            }
+                        } else {
+                            if(curShape != null) {
+                                float[] point = points.get(points.size() - 1);
+                                curShape.touchMove(point[0], point[1]);
+                            }
+                        }
+
                         ContextInfo.getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -348,14 +440,10 @@ public class ScoreShowView extends View {
                         });
                         break;
                     case Command.COMMAND_DRAWSHAPE_END:
-                        ContextInfo.getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                invalidate();
-                            }
-                        });
 
-                        addDrawList(curShape);
+                        if (receAshapeTime == curAshapeTime && curShape != null) {
+                            addDrawList(curShape);
+                        }
 
                         break;
                     default:
