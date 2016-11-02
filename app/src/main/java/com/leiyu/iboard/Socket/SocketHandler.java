@@ -51,6 +51,7 @@ public class SocketHandler implements SocketStatusListener {
 
         reader = null;
         writer = null;
+        socket = null;
     }
 
     @Override

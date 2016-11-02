@@ -2,8 +2,8 @@
     <string name="app_name">IBoard</string>
     <string name="server_dns">192.168.0.110</string>
     <integer name="iboard_port">52200</integer>
-    <!--<integer name="role">2</integer>-->
-    <!--<string name="user_name">student1</string>-->
-    <integer name="role">1</integer>
-    <string name="user_name">teacher1</string>
+    <integer name="role">2</integer>
+    <string name="user_name">student1</string>
+    <!--<integer name="role">1</integer>-->
+    <!--<string name="user_name">teacher1</string>-->
 </resources>
